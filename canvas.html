@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        span{
+            line-height: 30px;
+            font-size:16px;
+            color:#999;
+        }
+        #color{
+            width:100px;
+            height:20px;
+            margin-right:20px;
+        }
+        .option{
+            width:100px;
+            height:20px;
+        }
+    </style>
+</head>
+<body>
+<span>颜色：</span><input type="color" id="color"/>
+<span>画笔像素：</span><input type="range" class="option" id="option" min="1" max="50" value="1" step="1" />
+<span>透明度：</span><input type="range" class="opacity" id="opacity" min="0" max="1" step="0.1" value="1"/>
+<button id="clear" class="clear">清除画布</button>
+<button id="back">撤销</button>
+<button  id="pen">画笔</button>
+<button id="er">橡皮擦</button>
+<canvas id="myCanvas" width="1000" height="1000" style="border:solid 1px red"></canvas>
+<script>
+    var oCanvas=document.getElementById("myCanvas");
+    var context=oCanvas.getContext("2d");
+    var oColor=document.getElementById("color");
+    var oOption=document.getElementById("option");
+    var oOpacity=document.getElementById("opacity");
+    var oClear=document.getElementById("clear");
+    var oPen=document.getElementById("pen");
+    var oEa=document.getElementById("er");
+    var oBack=document.getElementById("back");
+    var oX,oY;
+    var iNow=0;
+    //用于存储以前的图
+    var oPrev=[];
+    var a=1;
+    if(a==1) {
+        oPen.style.backgroundColor = "#01ebfa";
+    }
+    oCanvas.onmousedown=function(event){
+        oPrev.length=iNow;
+        iNow++;
+        oPrev.push(context.getImageData(0,0,oCanvas.width,oCanvas.height));
+         oX=event.offsetX;
+         oY=event.offsetY;
+        oCanvas.onmousemove= function (event) {
+            //解决透明度不均匀
+            context.beginPath();
+            context.lineWidth=oOption.value;
+            context.globalAlpha=oOpacity.value;
+            context.globalCompositeOperation = "source-over";
+            context.moveTo(oX,oY);
+            context.lineTo(event.offsetX,event.offsetY);
+            if(a==0){
+                context.globalAlpha=1;
+                context.globalCompositeOperation="destination-out";
+            }
+            context.stroke();
+            oX=event.offsetX;
+            oY=event.offsetY;
+        }
+        document.onmouseup=function(){
+            oCanvas.onmousemove=null;
+            document.onmouseup=null;
+        }
+    }
+    oColor.onchange= function () {
+        console.log(this.value);
+        context.strokeStyle=this.value;
+
+    }
+    oOption.onchange= function () {
+        context.lineWidth=this.value;
+    }
+    oOpacity.onchange= function () {
+        context.globalAlpha=this.value;
+    }
+
+    /*点击撤销*/
+    oBack.onclick= function () {
+        context.clearRect(0,0,oCanvas.width,oCanvas.height);
+        if(!iNow)return;
+        iNow--;
+        context.putImageData(oPrev[iNow],0,0);
+    }
+
+    /*清除画布*/
+    oClear.onclick= function () {
+        context.clearRect(0,0,oCanvas.width,oCanvas.height);
+    }
+
+   /* 点击橡皮擦*/
+    oEa.onclick= function () {
+        a=0;
+        oPen.style.backgroundColor=null;
+        oEa.style.backgroundColor="#01ebfa";
+    }
+    /* 点击画笔*/
+    oPen.onclick= function () {
+        a=1;
+        oEa.style.backgroundColor=null;
+        oPen.style.backgroundColor="#01ebfa";
+    }
+</script>
+</body>
+</html>
